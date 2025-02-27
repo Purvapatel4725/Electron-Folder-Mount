@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Viewer</title>
+  <style>
+    body { padding: 20px; font-family: monospace; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>Text Viewer</h2>
+  <pre id="fileContent">Loading...</pre>
+  <script>
+    const fs = require("fs");
+    const urlParams = new URLSearchParams(window.location.search);
+    const filePath = decodeURIComponent(urlParams.get("file"));
+
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) {
+        document.getElementById("fileContent").textContent = "Error loading file.";
+      } else {
+        document.getElementById("fileContent").textContent = data;
+      }
+    });
+  </script>
+</body>
+</html>

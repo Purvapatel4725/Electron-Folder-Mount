@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        #file-list {
+            padding: 20px;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #file-list div {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #file-list div:hover {
+            background-color: #f0f0f0;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #path {
+            margin: 10px 20px;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            word-wrap: break-word;
+        }
+
+        #back-button {
+            background-color: #f44336;
+            display: none;
+        }
+
+        #back-button:hover {
+            background-color: #e53935;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>File Viewer</h1>
+    </header>
+
+    <div class="button-container">
+        <button id="open-folder">Open Folder</button>
+        <button id="back-button">Back</button>
+    </div>
+
+    <div id="path"></div>
+    <div id="file-list"></div>
+
+    <script>
+        const { ipcRenderer } = require("electron");
+        const path = require("path");
+
+        let currentPath = ''; // Tracks current folder path for navigation
+        let historyStack = []; // Stack to keep track of visited directories
+
+        // Open folder button event
+        document.getElementById("open-folder").addEventListener("click", async () => {
+            const folderData = await ipcRenderer.invoke("open-folder-dialog");
+
+            if (folderData) {
+                currentPath = folderData.folderPath;
+                historyStack = [currentPath]; // Reset history stack when starting a new folder
+                displayFiles(folderData);
+                updatePathDisplay(currentPath);
+            }
+        });
+
+        // Back button event
+        document.getElementById("back-button").addEventListener("click", () => {
+            if (historyStack.length > 1) {
+                // Pop the current directory and go to the previous one
+                historyStack.pop();
+                currentPath = historyStack[historyStack.length - 1];
+                ipcRenderer.send("open-file", currentPath);
+            }
+        });
+
+        // Function to display files
+        function displayFiles(folderData) {
+            const fileListDiv = document.getElementById("file-list");
+            fileListDiv.innerHTML = ""; // Clear previous list
+
+            const backButton = document.getElementById("back-button");
+            backButton.style.display = historyStack.length > 1 ? "block" : "none"; // Show back button only if history stack has more than one item
+
+            folderData.files.forEach(file => {
+                const fileElement = document.createElement("div");
+                fileElement.textContent = file.name;
+                fileElement.dataset.path = file.path; // Store file path
+                fileElement.classList.add("file-item");
+
+                fileElement.addEventListener("click", () => {
+                    if (file.isDirectory) {
+                        // Open directory and display its contents
+                        historyStack.push(file.path); // Add current directory to history before opening new one
+                        ipcRenderer.send("open-file", file.path);
+                    } else {
+                        // Open file
+                        ipcRenderer.send("open-file", file.path);
+                    }
+                });
+
+                fileListDiv.appendChild(fileElement);
+            });
+        }
+
+        // Listen for directory-opened event to navigate into subdirectories
+        ipcRenderer.on("directory-opened", (event, data) => {
+            currentPath = data.folderPath;
+            displayFiles(data);
+            updatePathDisplay(currentPath);
+        });
+
+        // Update path display
+        function updatePathDisplay(path) {
+            const pathDiv = document.getElementById("path");
+            pathDiv.textContent = `Current Path: ${path}`;
+        }
+    </script>
+</body>
+</html>
