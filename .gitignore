@@ -1,0 +1,33 @@
+# Node dependencies
+node_modules/
+package-lock.json
+
+# Build and distribution directories
+dist/
+out/
+build/
+*.asar
+
+# Compiled binary files
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Logs and temp files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# OS-specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Electron cache
+.cache/
+electron-cache/
