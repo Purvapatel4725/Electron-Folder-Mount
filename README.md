@@ -50,6 +50,7 @@ This will launch the Electron-based **Folder Viewer**.
    - **Text files** open in a built-in text viewer.  
    - **PDF files** open in a PDF viewer.  
    - **Images** open in an image viewer.  
+
 4️⃣ **Navigate Back** using the provided button if inside a subdirectory.  
 
 ---
